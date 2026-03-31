@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Simple To-Do App</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; background:#f4f4f8; }
+    #app { max-width: 600px; margin: auto; background:white; padding:20px; box-shadow:0 0 12px rgba(0,0,0,.08); border-radius:8px; }
+    h1 { margin-top:0; }
+    .controls { display:flex; gap:8px; }
+    .controls input { flex:1; padding:10px; font-size:16px; }
+    .controls button { padding:10px 16px; font-size:16px; cursor:pointer; }
+    ul { list-style:none; padding:0; margin-top:20px; }
+    li { display:flex; justify-content:space-between; align-items:center; padding:8px 6px; border-bottom:1px solid #ddd; }
+    li.done span { text-decoration: line-through; color:#777; }
+    .actions button { margin-left:4px; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>To-Do App</h1>
+    <div class="controls">
+      <input type="text" id="newTodo" placeholder="Add a new task" />
+      <button id="addBtn">Add</button>
+    </div>
+    <ul id="todoList"></ul>
+  </div>
+
+  <script>
+    const input = document.getElementById('newTodo');
+    const addBtn = document.getElementById('addBtn');
+    const list = document.getElementById('todoList');
+
+    const state = {
+      todos: JSON.parse(localStorage.getItem('todos') || '[]')
+    };
+
+    function save() {
+      localStorage.setItem('todos', JSON.stringify(state.todos));
+    }
+
+    function render() {
+      list.innerHTML = '';
+      state.todos.forEach((todo, idx) => {
+        const li = document.createElement('li');
+        li.className = todo.done ? 'done' : '';
+        const lbl = document.createElement('span');
+        lbl.textContent = todo.text;
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+
+        const toggle = document.createElement('button');
+        toggle.textContent = todo.done ? 'Undo' : 'Done';
+        toggle.onclick = () => {
+          state.todos[idx].done = !state.todos[idx].done;
+          save(); render();
+        };
+
+        const del = document.createElement('button');
+        del.textContent = 'Delete';
+        del.onclick = () => {
+          state.todos.splice(idx, 1);
+          save(); render();
+        };
+
+        actions.append(toggle, del);
+        li.append(lbl, actions);
+        list.appendChild(li);
+      });
+    }
+
+    function addTodo() {
+      const text = input.value.trim();
+      if (!text) return;
+      state.todos.push({ text, done: false });
+      input.value = '';
+      save();
+      render();
+      input.focus();
+    }
+
+    addBtn.addEventListener('click', addTodo);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') addTodo(); });
+    render();
+  </script>
+</body>
+</html>
